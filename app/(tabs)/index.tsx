@@ -1,98 +1,185 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from "expo-router";
+import React from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const ORANGE = "#E26B2F";
+const BLACK = "#111";
+const GREYMUTED = "#8A8A8A";
+const LINEWHITE = "#E6E6E6";
 
-export default function HomeScreen() {
+export default function LoginScreen() {
+  const router = useRouter();
+  const [remember, setRemember] = React.useState(false);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={styles.card}>
+        <Text style={styles.welcome}>Welcome!</Text>
+        <View style={styles.underline} />
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <View style={styles.form}>
+          <TextInput
+            placeholder="example@gmail.com"
+            placeholderTextColor="#B7B7B7"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
+          />
+          <View style={styles.inputLine} />
+
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#B7B7B7"
+            secureTextEntry
+            style={styles.input}
+          />
+          <View style={styles.inputLine} />
+
+          <View style={styles.row}>
+            <Pressable
+              onPress={() => setRemember((v) => !v)}
+              style={styles.rememberWrap}
+              hitSlop={8}
+            >
+              <View style={[styles.checkbox, remember && styles.checkboxOn]}>
+                {remember ? <View style={styles.checkboxDot} /> : null}
+              </View>
+              <Text style={styles.rememberText}>Remember Me</Text>
+            </Pressable>
+
+            <Pressable hitSlop={8} onPress={() => {}}>
+              <Text style={styles.forgot}>Forgot Password?</Text>
+            </Pressable>
+          </View>
+
+          <Pressable
+            style={styles.loginBtn}
+            onPress={() => router.push("/projects")}
+          >
+            <Text style={styles.loginBtnText}>Login</Text>
+          </Pressable>
+
+          <View style={styles.bottomRow}>
+            <Text style={styles.bottomText}>New member? </Text>
+            <Pressable onPress={() => {}} hitSlop={8}>
+              <Text style={styles.register}>Register Now</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  screen: {
+    flex: 1,
+    backgroundColor: "#F3F3F3",
+    justifyContent: "center",
+    paddingHorizontal: 26,
+  },
+  card: {
+    backgroundColor: "transparent",
+  },
+  welcome: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: BLACK,
+    marginBottom: 6,
+  },
+  underline: {
+    width: 56,
+    height: 3,
+    backgroundColor: ORANGE,
+    borderRadius: 2,
+    marginBottom: 18,
+  },
+  form: {
+    gap: 10,
+  },
+  input: {
+    fontSize: 14,
+    color: BLACK,
+    paddingVertical: 10,
+  },
+  inputLine: {
+    height: 1,
+    backgroundColor: LINEWHITE,
+    marginTop: -6,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 6,
+  },
+  rememberWrap: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  checkbox: {
+    width: 14,
+    height: 14,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: "#CFCFCF",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  checkboxOn: {
+    borderColor: ORANGE,
+  },
+  checkboxDot: {
+    width: 8,
+    height: 8,
+    backgroundColor: ORANGE,
+    borderRadius: 2,
+  },
+  rememberText: {
+    fontSize: 12,
+    color: GREYMUTED,
+  },
+  forgot: {
+    fontSize: 12,
+    color: ORANGE,
+  },
+  loginBtn: {
+    marginTop: 18,
+    backgroundColor: ORANGE,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 2,
+  },
+  loginBtnText: {
+    color: "#FFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  bottomRow: {
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  bottomText: {
+    fontSize: 12,
+    color: GREYMUTED,
+  },
+  register: {
+    fontSize: 12,
+    color: ORANGE,
+    fontWeight: "600",
   },
 });
