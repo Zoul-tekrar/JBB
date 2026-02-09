@@ -16,7 +16,7 @@ export default function Projects() {
   return (
     <View style={styles.project}>
       <View>
-        <Text style={styles.title}>Projects Page</Text>
+        <Text style={styles.title}>Projects</Text>
       </View>
 
       <FlatList
@@ -54,11 +54,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 70,
   },
   title: {
-    color: colorCodes.JBBORANGE,
+    color: colorCodes.JBBBLACKJBB,
     borderColor: colorCodes.JBBORANGE,
     borderBottomColor: colorCodes.JBBORANGE,
-    borderBottomWidth: 10,
+    borderBottomWidth: 4,
     fontSize: 22,
+    paddingBottom: 8,
+    fontWeight: "bold",
   },
   add_project: {
     marginTop: 40,
