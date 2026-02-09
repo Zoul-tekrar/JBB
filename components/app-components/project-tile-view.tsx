@@ -22,21 +22,13 @@ export default function ProjectTileView(props: ProjectTileViewProps) {
 
 const styles = StyleSheet.create({
   projectItem: {},
-  title: {
-    margin: 40,
-    color: colorCodes.BLACKJBB,
-    borderColor: colorCodes.ORANGE,
-    borderBottomColor: colorCodes.ORANGE,
-    borderBottomWidth: 10,
-    fontSize: 22,
-  },
   icon: {
-    color: colorCodes.ORANGE,
+    color: colorCodes.JBBORANGE,
   },
   project_card: {
     marginTop: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 12,
+    padding: 15,
   },
 });

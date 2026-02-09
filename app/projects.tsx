@@ -30,36 +30,42 @@ export default function Projects() {
         keyExtractor={(item) => item.id}
       ></FlatList>
 
-      <View style={styles.project_button}>
-        <AntDesign name="plus-square" size={24} color={colorCodes.ORANGE} />
-        <Pressable>
-          <Text style={styles.project_button_text}>Add Project</Text>
-        </Pressable>
-      </View>
+      <Pressable>
+        <View style={{ ...styles.add_project }}>
+          <View>
+            <AntDesign
+              name="plus-square"
+              size={24}
+              color={colorCodes.JBBORANGE}
+            />
+          </View>
+          <View>
+            <Text style={styles.project_button_text}>Add Project</Text>
+          </View>
+        </View>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  projectItem: {},
   project: {
     justifyContent: "center",
+    marginHorizontal: 70,
   },
   title: {
-    margin: 40,
-    color: colorCodes.ORANGE,
-    borderColor: colorCodes.ORANGE,
-    borderBottomColor: colorCodes.ORANGE,
+    color: colorCodes.JBBORANGE,
+    borderColor: colorCodes.JBBORANGE,
+    borderBottomColor: colorCodes.JBBORANGE,
     borderBottomWidth: 10,
     fontSize: 22,
   },
-  project_button: {
+  add_project: {
     marginTop: 40,
     flexDirection: "row",
-    alignContent: "center",
   },
   project_button_text: {
+    marginLeft: 10,
     fontSize: 22,
-    marginLeft: 15,
   },
 });
