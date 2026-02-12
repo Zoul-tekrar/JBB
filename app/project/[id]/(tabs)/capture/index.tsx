@@ -2,6 +2,8 @@ import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { router } from "expo-router";
 import { Button, View } from "react-native";
 
+import "../../../../../global.css";
+
 export default function Capture() {
   return (
     <View>
