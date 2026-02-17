@@ -2,6 +2,7 @@ import ProjectTileView from "@/components/app-components/project-tile-view";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { colorCodes } from "@/components/ui/colorCodes";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { router } from "expo-router";
 import React from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { Project } from "./domain/project";
@@ -53,7 +54,7 @@ export default function Projects() {
         keyExtractor={(item) => item.id}
       ></FlatList>
 
-      <Pressable>
+      <Pressable onPress={() => router.push("/addproject")}>
         <View style={{ ...styles.add_project }}>
           <View>
             <AntDesign
