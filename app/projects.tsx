@@ -2,56 +2,64 @@ import ProjectTileView from "@/components/app-components/project-tile-view";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { colorCodes } from "@/components/ui/colorCodes";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { router } from "expo-router";
-import React from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { Project } from "./domain/project";
+import { ProjectDto } from "./dtos/dtos";
 
-const PROJECTS: Project[] = [
-  {
-    id: "1",
-    name: "97 Highgams Park",
-    address: "address",
-    createdAt: "createdAt",
-    createdByUserId: "1",
-  },
-  {
-    id: "2",
-    name: "67 Glasslyn Road",
-    address: "address",
-    createdAt: "createdAt",
-    createdByUserId: "1",
-  },
-  {
-    id: "3",
-    name: "30 Voluntary Place",
-    address: "address",
-    createdAt: "createdAt",
-    createdByUserId: "1",
-  },
-  {
-    id: "4",
-    name: "13 Willow Road",
-    address: "address",
-    createdAt: "createdAt",
-    createdByUserId: "1",
-  },
-];
+const API_BASE_URL = "https://localhost:7243";
 
 export default function Projects() {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<ProjectDto[]>();
+  useFocusEffect(
+    useCallback(() => {
+      const loadProjects = async () => {
+        try {
+          const projects = await getProjects();
+          setProjects(projects);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Failed to load projects");
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadProjects();
+    }, []),
+  );
+
+  async function getProjects(): Promise<ProjectDto[]> {
+    const res = await fetch(`${API_BASE_URL}/project`);
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`${res.status} : ${text}`);
+    }
+
+    const createdProjects: ProjectDto[] = await res.json();
+
+    console.log(createdProjects);
+
+    return createdProjects;
+  }
+
   return (
     <View style={styles.project}>
       <JbbTitle title="Projects"></JbbTitle>
 
-      <FlatList
-        data={PROJECTS}
-        renderItem={(item) => (
+      {loading && <Text className="text-lg">Loading...</Text>}
+      {error && <Text className="text-red-700 font-semibold">{error}</Text>}
+
+      <FlatList<ProjectDto>
+        data={projects}
+        renderItem={({ item }) => (
           <ProjectTileView
-            id={item.item.id}
-            name={item.item.name}
+            id={item.id.toString()}
+            name={item.name}
           ></ProjectTileView>
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
       ></FlatList>
 
       <Pressable onPress={() => router.push("/addproject")}>
