@@ -1,7 +1,6 @@
 import {
   ActivityLog,
   CaptureEntry,
-  Project,
   ProjectMember,
   TimeLog,
 } from "@/domain/project";
@@ -11,13 +10,13 @@ const now = new Date().toISOString();
 const daysAgo = (n: number) =>
   new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString();
 
-export const dummyProject: Project = {
-  id: "project-1",
-  name: "97 Highams Road",
-  address: "97 Highams Road, London",
-  createdByUserId: "user-admin-1",
-  createdAt: daysAgo(30),
-};
+// export const dummyProject: Project = {
+//   projectId: "project-1",
+//   projectName: "97 Highams Road",
+//   address: "97 Highams Road, London",
+//   createdByUserId: "user-admin-1",
+//   createdAt: daysAgo(30),
+// };
 
 export const dummyMembers: ProjectMember[] = [
   {

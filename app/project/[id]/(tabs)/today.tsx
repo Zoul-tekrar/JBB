@@ -1,30 +1,61 @@
 import { FakeMapBox } from "@/components/design-components/fake-map-box";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { colorCodes } from "@/components/ui/colorCodes";
-import { dummyActivityLogs, dummyProject } from "@/data/dummyData";
+import { dummyActivityLogs } from "@/data/dummyData";
+import { ProjectDto } from "@/dtos/dtos";
 import Fontisto from "@expo/vector-icons/Fontisto";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { ActivityLog, Project } from "../../../../domain/project";
+import { ActivityLog } from "../../../../domain/project";
+
+const API_BASE_URL = "https://localhost:7243";
 
 export type ProjectDetailVM = {
-  project: Project;
+  project: ProjectDto;
   activityLogs: ActivityLog[];
-};
-
-export const dummyProjectDetail: ProjectDetailVM = {
-  project: dummyProject,
-  activityLogs: dummyActivityLogs,
 };
 
 export default function ProjectId() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [project, setProject] = useState<ProjectDetailVM | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setProject(dummyProjectDetail);
-  });
+  useFocusEffect(
+    useCallback(() => {
+      const loadProjects = async () => {
+        try {
+          const project = await getProject();
+          const projectvm: ProjectDetailVM = {
+            project: project,
+            activityLogs: dummyActivityLogs,
+          };
+          setProject(projectvm);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Failed to load projects");
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadProjects();
+    }, []),
+  );
+
+  async function getProject(): Promise<ProjectDto> {
+    const res = await fetch(`${API_BASE_URL}/project/${id}`);
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`${res.status} : ${text}`);
+    }
+
+    const project: ProjectDto = await res.json();
+
+    console.log(project);
+
+    return project;
+  }
 
   return (
     <View>
