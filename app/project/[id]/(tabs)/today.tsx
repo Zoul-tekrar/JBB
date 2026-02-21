@@ -6,7 +6,7 @@ import Fontisto from "@expo/vector-icons/Fontisto";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { ActivityLog, Project } from "../../../domain/project";
+import { ActivityLog, Project } from "../../../../domain/project";
 
 export type ProjectDetailVM = {
   project: Project;

@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { Button, Text, TextInput, View } from "react-native";
 import { z } from "zod";
-import { ProjectDto } from "./dtos/dtos";
+import { ProjectDto } from "../dtos/dtos";
 
 export default function AddProject() {
   const API_BASE_URL = "https://localhost:7243";

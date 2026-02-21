@@ -4,7 +4,7 @@ import {
   Project,
   ProjectMember,
   TimeLog,
-} from "@/app/domain/project";
+} from "@/domain/project";
 
 const now = new Date().toISOString();
 

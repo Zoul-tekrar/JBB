@@ -14,7 +14,7 @@ export default function Capture() {
       ></Button>
 
       <Button
-        title="Video"
+        title="Video Walkthrough"
         onPress={() => router.push("/project/[id]/capture/video")}
       ></Button>
 
@@ -24,7 +24,15 @@ export default function Capture() {
       ></Button>
 
       <Button
-        title="Report Issue Incident"
+        title="Report Issue/Incident"
+        onPress={() => router.push("/project/[id]/capture/incident-report")}
+      ></Button>
+      <Button
+        title="Add note"
+        onPress={() => router.push("/project/[id]/(tabs)/capture/addnotes")}
+      ></Button>
+      <Button
+        title="Certificates/Reports"
         onPress={() => router.push("/project/[id]/capture/incident-report")}
       ></Button>
     </View>

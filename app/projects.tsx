@@ -5,7 +5,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { ProjectDto } from "./dtos/dtos";
+import { ProjectDto } from "../dtos/dtos";
 
 const API_BASE_URL = "https://localhost:7243";
 
