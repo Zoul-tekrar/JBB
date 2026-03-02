@@ -1,6 +1,7 @@
 import { FakeMapBox } from "@/components/design-components/fake-map-box";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { colorCodes } from "@/components/ui/colorCodes";
+import { API_BASE_URL } from "@/constants/urls";
 import { dummyActivityLogs } from "@/data/dummyData";
 import { ProjectDto } from "@/dtos/dtos";
 import Fontisto from "@expo/vector-icons/Fontisto";
@@ -8,8 +9,6 @@ import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { ActivityLog } from "../../../../domain/project";
-
-const API_BASE_URL = "https://localhost:7243";
 
 export type ProjectDetailVM = {
   project: ProjectDto;

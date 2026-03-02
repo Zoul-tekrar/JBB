@@ -3,13 +3,12 @@ import {
   SimpleCategoryDropdown,
 } from "@/components/app-components/simpleCategoryDropdown";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
+import { API_BASE_URL } from "@/constants/urls";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocalSearchParams } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { Button, Text, TextInput, View } from "react-native";
 import z from "zod";
-
-const API_BASE_URL = "https://localhost:7243";
 
 export default function AddNotes() {
   const { id } = useLocalSearchParams<{ id: string }>();

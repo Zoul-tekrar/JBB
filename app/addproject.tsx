@@ -1,4 +1,5 @@
 import { JbbTitle } from "@/components/design-components/JbbTitle";
+import { API_BASE_URL } from "@/constants/urls";
 import { projectSchema } from "@/data/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
@@ -8,8 +9,6 @@ import { z } from "zod";
 import { ProjectDto } from "../dtos/dtos";
 
 export default function AddProject() {
-  const API_BASE_URL = "https://localhost:7243";
-
   type ProjectForm = z.infer<typeof projectSchema>;
 
   const {
