@@ -1,3 +1,4 @@
+import { Category } from "@/components/app-components/simpleCategoryDropdown";
 import {
   ActivityLog,
   CaptureEntry,
@@ -270,4 +271,10 @@ export const dummyActivityLogs: ActivityLog[] = [
     createdAt: "2026-04-12T12:02:00Z",
     displayMessage: "Accident report has been created",
   },
+];
+
+export const dummyCategories: Category[] = [
+  { id: 1, name: "Structural Foundation" },
+  { id: 2, name: "Framing" },
+  { id: 3, name: "Electrical" },
 ];

@@ -52,7 +52,7 @@ export default function Capture() {
         title="Add note"
         onPress={() =>
           router.push({
-            pathname: "/project/[id]/capture/addnotes",
+            pathname: "/project/[id]/capture/notes",
             params: { id: id },
           })
         }

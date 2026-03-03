@@ -1,7 +1,7 @@
-import AddNotes from "@/components/addnotes-refactor";
-import { Category } from "@/components/app-components/simpleCategoryDropdown";
+import AddNotes from "@/components/addnotes";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { API_BASE_URL } from "@/constants/urls";
+import { dummyCategories } from "@/data/dummyData";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocalSearchParams } from "expo-router";
 import { useForm } from "react-hook-form";
@@ -17,11 +17,6 @@ export type CaptureEntry = z.infer<typeof CaptureEntryNoteSchema>;
 
 export default function Notes() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const categories: Category[] = [
-    { id: 1, name: "Structural Foundation" },
-    { id: 2, name: "Framing" },
-    { id: 3, name: "Electrical" },
-  ];
 
   const {
     control,
@@ -54,7 +49,7 @@ export default function Notes() {
     <View>
       <JbbTitle title={"Add notes"}></JbbTitle>
       <AddNotes
-        categories={categories}
+        categories={dummyCategories}
         control={control}
         errors={errors}
       ></AddNotes>
