@@ -1,4 +1,4 @@
-import { CaptureEntry } from "@/app/project/[id]/(tabs)/capture/addnotes";
+import { CaptureEntry } from "@/app/project/[id]/(tabs)/capture/notes";
 import {
   Category,
   SimpleCategoryDropdown,

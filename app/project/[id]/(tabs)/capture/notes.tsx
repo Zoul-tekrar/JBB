@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { Button, View } from "react-native";
 import z from "zod";
 
-const CaptureEntryNoteSchema = z.object({
+export const CaptureEntryNoteSchema = z.object({
   categoryId: z.number(),
   shortDescription: z.string().trim().max(50).min(1),
 });
