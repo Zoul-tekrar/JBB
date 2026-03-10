@@ -2,6 +2,14 @@ import AddNotes from "@/components/addnotes";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { API_BASE_URL } from "@/constants/urls";
 import { dummyCategories } from "@/data/dummyData";
+import {
+  BlobSasResponse,
+  CaptureEntry,
+  MediaUploads,
+  PhotoCaptureEntryRequest,
+  PhotoEntry,
+  PhotoEntrySchema,
+} from "@/features/capture/api/upload";
 import Entypo from "@expo/vector-icons/Entypo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -23,14 +31,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import z from "zod";
-import { CaptureEntry, CaptureEntryNoteSchema } from "./notes";
-
-const PhotoEntrySchema = CaptureEntryNoteSchema.extend({
-  images: z.array(z.string()).min(1),
-});
-
-type PhotoEntry = z.infer<typeof PhotoEntrySchema>;
 
 type Preview = { uri: string } | null;
 
@@ -103,37 +103,27 @@ export default function TakePhotoScreen() {
     );
   }
 
-  type BlobSasResponse = {
-    blobName: string;
-    uploadUrl: string;
-  };
-
   async function onSubmitPictures(formData: PhotoEntry) {
     const payload = {
-      categoryId: formData.categoryId,
-      shortDescription: formData.shortDescription,
       files: formData.images.map((i) => ({ contentType: "image/jpeg" })),
-      type: "Photo",
       projectId: Number(id),
     };
-    console.log(payload);
+
     const res = await fetch(`${API_BASE_URL}/storage/store`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...payload,
-        type: "Photo",
-        projectId: Number(id),
-      }),
+      body: JSON.stringify(payload),
     });
+
     const toUpload: BlobSasResponse[] = await res.json();
+
     for (let i = 0; i < toUpload.length; i++) {
       let uploadUrl = toUpload[i].uploadUrl;
 
       const imageBody = await fetch(images[i]);
       const imageBodyAsBlob = await imageBody.blob();
 
-      const uploadToStorageResult = await fetch(uploadUrl, {
+      await fetch(uploadUrl, {
         method: "PUT",
         headers: {
           "x-ms-blob-type": "BlockBlob",
@@ -141,13 +131,37 @@ export default function TakePhotoScreen() {
         },
         body: imageBodyAsBlob,
       });
-      if (uploadToStorageResult.ok) {
-        router.replace({
-          pathname: "/project/[id]/capture/photo",
-          params: { id },
-        });
-      }
     }
+
+    const mediaUploads = toUpload.map((u) => {
+      let m: MediaUploads = {
+        blobName: u.blobName,
+        mediaType: "photo",
+      };
+      return m;
+    });
+
+    const photoCaptureEntryRequest: PhotoCaptureEntryRequest = {
+      categoryId: formData.categoryId,
+      mediaEntries: mediaUploads,
+      shortDescription: formData.shortDescription,
+    };
+
+    await fetch(`${API_BASE_URL}/captureentry`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...photoCaptureEntryRequest,
+        projectId: Number(id),
+        type: "Photo",
+      }),
+    });
+    // NO wrong scenario right now. Finish this after
+
+    router.replace({
+      pathname: "/project/[id]/capture",
+      params: { id },
+    });
   }
 
   return (

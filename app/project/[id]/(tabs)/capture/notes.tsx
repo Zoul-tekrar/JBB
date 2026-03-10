@@ -2,18 +2,14 @@ import AddNotes from "@/components/addnotes";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { API_BASE_URL } from "@/constants/urls";
 import { dummyCategories } from "@/data/dummyData";
+import {
+  CaptureEntry,
+  CaptureEntryNoteSchema,
+} from "@/features/capture/api/upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocalSearchParams } from "expo-router";
 import { useForm } from "react-hook-form";
 import { Button, View } from "react-native";
-import z from "zod";
-
-export const CaptureEntryNoteSchema = z.object({
-  categoryId: z.number(),
-  shortDescription: z.string().trim().max(50).min(1),
-});
-
-export type CaptureEntry = z.infer<typeof CaptureEntryNoteSchema>;
 
 export default function Notes() {
   const { id } = useLocalSearchParams<{ id: string }>();

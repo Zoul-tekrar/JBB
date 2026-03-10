@@ -1,11 +1,10 @@
-import { CaptureEntry } from "@/app/project/[id]/(tabs)/capture/notes";
 import {
   Category,
   SimpleCategoryDropdown,
 } from "@/components/app-components/simpleCategoryDropdown";
+import { CaptureEntry } from "@/features/capture/api/upload";
 import { Control, Controller, FieldErrors } from "react-hook-form";
 import { Text, TextInput, View } from "react-native";
-
 type NotesFormProps = {
   categories: Category[];
   control: Control<CaptureEntry>;
