@@ -12,7 +12,14 @@ export const PhotoEntrySchema = CaptureEntryNoteSchema.extend({
   images: z.array(z.string()).min(1),
 });
 
+export const AudioEntrySchema = CaptureEntryNoteSchema.extend({
+  audioUri: z.string().trim().min(10),
+});
+
 export type PhotoEntry = z.infer<typeof PhotoEntrySchema>;
+
+export type AudioEntry = z.infer<typeof AudioEntrySchema>;
+
 export type BlobSasResponse = {
   blobName: string;
   uploadUrl: string;
