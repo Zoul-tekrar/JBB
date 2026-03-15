@@ -13,7 +13,7 @@ export const PhotoEntrySchema = CaptureEntryNoteSchema.extend({
 });
 
 export const AudioEntrySchema = CaptureEntryNoteSchema.extend({
-  audioUri: z.string().trim().min(10),
+  audioUri: z.string().trim().min(10).nullable(),
 });
 
 export type PhotoEntry = z.infer<typeof PhotoEntrySchema>;
@@ -31,5 +31,9 @@ export type MediaUploads = {
 };
 
 export type PhotoCaptureEntryRequest = CaptureEntry & {
+  mediaEntries: MediaUploads[];
+};
+
+export type AudioCaptureEntryRequest = CaptureEntry & {
   mediaEntries: MediaUploads[];
 };

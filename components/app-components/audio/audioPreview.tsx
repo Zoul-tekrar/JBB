@@ -1,4 +1,3 @@
-import { JbbTitle } from "@/components/design-components/JbbTitle";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -81,10 +80,8 @@ export default function AudioPreview({ uri }: { uri: string }) {
 
   return (
     <View>
-      <JbbTitle title={"Audio"}></JbbTitle>
-
       <View className="flex items-center justify-center mt-6">
-        <View className="bg-gray-600 w-2/12 rounded-full p-3 flex-row items-center">
+        <View className="bg-gray-600 w-4/12 rounded-full p-3 flex-row items-center">
           <Pressable onPress={restartPlayback}>
             <MaterialCommunityIcons name="restart" size={24} color="black" />
           </Pressable>
