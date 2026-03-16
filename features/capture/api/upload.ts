@@ -16,9 +16,17 @@ export const AudioEntrySchema = CaptureEntryNoteSchema.extend({
   audioUri: z.string().trim().min(10).nullable(),
 });
 
+export const MediaEntrySchema = CaptureEntryNoteSchema.extend({
+  mediaFiles: z.array(z.string().min(2)).min(1),
+});
+
 export type PhotoEntry = z.infer<typeof PhotoEntrySchema>;
 
 export type AudioEntry = z.infer<typeof AudioEntrySchema>;
+
+export type MediaEntry = z.infer<typeof MediaEntrySchema>;
+
+export type MediaFile = { uri: string; name: string; mimeType?: string };
 
 export type BlobSasResponse = {
   blobName: string;

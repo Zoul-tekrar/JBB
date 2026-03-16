@@ -6,7 +6,7 @@ export type CaptureType =
   | "note"
   | "incident"
   | "certificate";
-export type MediaType = "photo" | "video" | "audio";
+export type MediaType = "photo" | "video" | "audio" | string;
 export type ActivityActionType =
   | "CLOCK_IN"
   | "MEDIA_ADDED"

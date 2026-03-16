@@ -38,16 +38,6 @@ export default function Capture() {
           })
         }
       ></Button>
-
-      <Button
-        title="Report Issue/Incident"
-        onPress={() =>
-          router.push({
-            pathname: "/project/[id]/capture/incident-report",
-            params: { id: id },
-          })
-        }
-      ></Button>
       <Button
         title="Add note"
         onPress={() =>
@@ -57,15 +47,17 @@ export default function Capture() {
           })
         }
       ></Button>
-      <Button
-        title="Certificates/Reports"
-        onPress={() =>
-          router.push({
-            pathname: "/project/[id]/capture/incident-report",
-            params: { id: id },
-          })
-        }
-      ></Button>
+      <View className="mt-11">
+        <Button
+          title="Certificates/Reports"
+          onPress={() =>
+            router.push({
+              pathname: "/project/[id]/capture/certificatesreport",
+              params: { id: id },
+            })
+          }
+        ></Button>
+      </View>
     </View>
   );
 }
