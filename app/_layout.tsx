@@ -10,6 +10,7 @@ import "../global.css";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -23,6 +24,7 @@ export default function RootLayout() {
       <View style={{ flex: 1, paddingHorizontal: 20 }}>
         <Stack></Stack>
         <StatusBar style="auto" />
+        <Toast />
       </View>
     </ThemeProvider>
   );

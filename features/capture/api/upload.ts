@@ -52,3 +52,5 @@ export type PhotoCaptureEntryRequest = CaptureEntry & {
 export type AudioCaptureEntryRequest = CaptureEntry & {
   mediaEntries: MediaUploads[];
 };
+
+export type MediaPermissionState = "undetermined" | "granted" | "denied";

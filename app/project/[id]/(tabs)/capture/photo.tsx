@@ -4,6 +4,7 @@ import { API_BASE_URL } from "@/constants/urls";
 import {
   BlobSasResponse,
   CaptureEntry,
+  MediaFileFile,
   MediaUploads,
   PhotoCaptureEntryRequest,
   PhotoEntry,
@@ -11,7 +12,6 @@ import {
 } from "@/features/capture/api/upload";
 import Entypo from "@expo/vector-icons/Entypo";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCameraPermissions } from "expo-camera";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Control, useForm } from "react-hook-form";
@@ -26,7 +26,8 @@ import {
 
 import { dummyCategories } from "@/data/dummyData";
 
-import { useCaptureMedia } from "@/components/hooks/capture/useCaptureMedia";
+import { useCaptureMedia } from "@/components/capture/hooks/useCaptureMedia";
+import { showInfo } from "@/components/ui/toast";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TakePhotoScreen() {
@@ -46,29 +47,44 @@ export default function TakePhotoScreen() {
   });
 
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [permission, requestPermission] = useCameraPermissions();
+
   const images = watch("images");
   const [isCapturing, setIsCapturing] = useState(false);
-  const { capturePicture, captureVideo, captureSelectFile } = useCaptureMedia();
+  const {
+    cameraPermission,
+    mediaFilePermission,
+    capturePicture,
+    captureVideo,
+    captureSelectFile,
+  } = useCaptureMedia();
+
+  function updateImages(foo: MediaFileFile[]) {
+    showInfo("Added an image");
+    if (foo) {
+      setValue("images", [...images, ...foo]);
+    }
+  }
 
   const takePicture = async () => {
     const capturedPicture = await capturePicture();
+    console.log(capturedPicture);
+
     if (capturedPicture) {
-      setValue("images", [...images, capturedPicture]);
+      updateImages([capturedPicture]);
     }
   };
 
   const takeVideo = async () => {
     const capturedVideo = await captureVideo();
     if (capturedVideo) {
-      setValue("images", [...images, capturedVideo]);
+      updateImages([capturedVideo]);
     }
   };
 
   const pickFile = async () => {
     const pickedFiles = await captureSelectFile();
     if (pickedFiles) {
-      setValue("images", [...images, ...pickedFiles]);
+      updateImages(pickedFiles);
     }
   };
 
@@ -133,6 +149,24 @@ export default function TakePhotoScreen() {
     });
   }
 
+  if (cameraPermission !== "granted" && mediaFilePermission !== "granted") {
+    return (
+      <View>
+        <Text>You dont have permissions...</Text>
+      </View>
+    );
+  }
+  if (
+    cameraPermission === "undetermined" &&
+    mediaFilePermission === "undetermined"
+  ) {
+    return (
+      <View>
+        <Text>Retrieving Permissions...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <View>
@@ -160,35 +194,41 @@ export default function TakePhotoScreen() {
             {errors.shortDescription?.message}
           </Text>
         </View>
-        <View className="my-5 bg-orange-600">
-          <TouchableOpacity
-            style={{ alignItems: "center", justifyContent: "center" }}
-            onPress={pickFile}
-            disabled={isCapturing}
-          >
-            <MaterialIcons name="attach-file" size={36} color="#f1f1f1" />
-          </TouchableOpacity>
-        </View>
+        {mediaFilePermission && (
+          <View className="my-5 bg-orange-600">
+            <TouchableOpacity
+              style={{ alignItems: "center", justifyContent: "center" }}
+              onPress={pickFile}
+              disabled={isCapturing}
+            >
+              <MaterialIcons name="attach-file" size={36} color="#f1f1f1" />
+            </TouchableOpacity>
+          </View>
+        )}
 
-        <View className="bg-orange-600">
-          <TouchableOpacity
-            style={{ alignItems: "center", justifyContent: "center" }}
-            onPress={takePicture}
-            disabled={isCapturing}
-          >
-            <Entypo name="camera" size={36} color="#f1f1f1"></Entypo>
-          </TouchableOpacity>
-        </View>
+        {cameraPermission && (
+          <View>
+            <View className="bg-orange-600">
+              <TouchableOpacity
+                style={{ alignItems: "center", justifyContent: "center" }}
+                onPress={takePicture}
+                disabled={isCapturing}
+              >
+                <Entypo name="camera" size={36} color="#f1f1f1"></Entypo>
+              </TouchableOpacity>
+            </View>
+            <View className="bg-orange-600">
+              <TouchableOpacity
+                style={{ alignItems: "center", justifyContent: "center" }}
+                onPress={takeVideo}
+                disabled={isCapturing}
+              >
+                <Entypo name="camera" size={36} color="#f1f1f1"></Entypo>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
-        <View className="bg-orange-600">
-          <TouchableOpacity
-            style={{ alignItems: "center", justifyContent: "center" }}
-            onPress={takeVideo}
-            disabled={isCapturing}
-          >
-            <Entypo name="camera" size={36} color="#f1f1f1"></Entypo>
-          </TouchableOpacity>
-        </View>
         {images && images.length > 0 && (
           <View>
             <Button
