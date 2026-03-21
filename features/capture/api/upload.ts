@@ -8,8 +8,13 @@ export const CaptureEntryNoteSchema = z.object({
 
 export type CaptureEntry = z.infer<typeof CaptureEntryNoteSchema>;
 
+export const MediaUploadSchema = z.object({
+  uri: z.string(),
+  name: z.string(),
+  mediaType: z.string(),
+});
 export const PhotoEntrySchema = CaptureEntryNoteSchema.extend({
-  images: z.array(z.string()).min(1),
+  images: z.array(MediaUploadSchema),
 });
 
 export const AudioEntrySchema = CaptureEntryNoteSchema.extend({
@@ -27,6 +32,8 @@ export type AudioEntry = z.infer<typeof AudioEntrySchema>;
 export type MediaEntry = z.infer<typeof MediaEntrySchema>;
 
 export type MediaFile = { uri: string; name: string; mimeType?: string };
+
+export type MediaFileFile = z.infer<typeof MediaUploadSchema>;
 
 export type BlobSasResponse = {
   blobName: string;

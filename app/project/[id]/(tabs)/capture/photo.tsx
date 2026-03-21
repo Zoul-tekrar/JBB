@@ -1,7 +1,6 @@
 import AddNotes from "@/components/addnotes";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { API_BASE_URL } from "@/constants/urls";
-import { dummyCategories } from "@/data/dummyData";
 import {
   BlobSasResponse,
   CaptureEntry,
@@ -12,27 +11,23 @@ import {
 } from "@/features/capture/api/upload";
 import Entypo from "@expo/vector-icons/Entypo";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  CameraType,
-  CameraView,
-  FlashMode,
-  useCameraPermissions,
-} from "expo-camera";
+import { useCameraPermissions } from "expo-camera";
 import { router, useLocalSearchParams } from "expo-router";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Control, useForm } from "react-hook-form";
 import {
   Button,
   Image,
-  Modal,
-  Pressable,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
-type Preview = { uri: string } | null;
+import { dummyCategories } from "@/data/dummyData";
+
+import { useCaptureMedia } from "@/components/hooks/capture/useCaptureMedia";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TakePhotoScreen() {
   const {
@@ -53,55 +48,29 @@ export default function TakePhotoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [permission, requestPermission] = useCameraPermissions();
   const images = watch("images");
-  const [facing, setFacing] = useState<CameraType>("back");
-  const [flash, setFlash] = useState<FlashMode>("off");
   const [isCapturing, setIsCapturing] = useState(false);
+  const { capturePicture, captureVideo, captureSelectFile } = useCaptureMedia();
 
-  const [open, setOpen] = useState(false);
-
-  const cameraRef = useRef<CameraView | null>(null);
-
-  const [lastPhoto, setLastPhoto] = useState<Preview>(null);
-  const [showSavedToast, setShowSavedToast] = useState(false);
   const takePicture = async () => {
-    setIsCapturing(true);
-    if (cameraRef) {
-      try {
-        const data = await cameraRef.current?.takePictureAsync();
-        if (data && data.uri) {
-          setValue("images", [...images, data.uri], { shouldValidate: true });
-        }
-      } catch (e) {
-        console.log(e);
-      }
+    const capturedPicture = await capturePicture();
+    if (capturedPicture) {
+      setValue("images", [...images, capturedPicture]);
     }
-    setIsCapturing(false);
   };
 
-  if (!permission) {
-    return (
-      <View>
-        <Text>Loading permissions…</Text>
-      </View>
-    );
-  }
+  const takeVideo = async () => {
+    const capturedVideo = await captureVideo();
+    if (capturedVideo) {
+      setValue("images", [...images, capturedVideo]);
+    }
+  };
 
-  if (!permission.granted) {
-    return (
-      <View>
-        <Text>Camera access needed</Text>
-        <Text>To capture jobsite photos, allow camera permission.</Text>
-
-        <Pressable onPress={requestPermission}>
-          <Text>Allow Camera</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.back()}>
-          <Text>Go Back</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  const pickFile = async () => {
+    const pickedFiles = await captureSelectFile();
+    if (pickedFiles) {
+      setValue("images", [...images, ...pickedFiles]);
+    }
+  };
 
   async function onSubmitPictures(formData: PhotoEntry) {
     const payload = {
@@ -166,8 +135,8 @@ export default function TakePhotoScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ flex: 1 }}>
-        <JbbTitle title="Photo"></JbbTitle>
+      <View>
+        <JbbTitle title="Photos"></JbbTitle>
         <Text className="text-center text-bold text-l text-red-700 font-semibold">
           {errors.images?.message}
           {errors.root?.message}
@@ -175,15 +144,14 @@ export default function TakePhotoScreen() {
           {errors.shortDescription?.message}
         </Text>
         <Text>Camera</Text>
-        <CameraView
-          flash={flash}
-          facing={facing}
-          ref={cameraRef}
-          style={{ flex: 1 }}
-        ></CameraView>
+        <AddNotes
+          categories={dummyCategories}
+          control={control as unknown as Control<CaptureEntry>}
+          errors={errors}
+        ></AddNotes>
       </View>
 
-      <View className="bg-red-950">
+      <View className="mt-4">
         <View>
           <Text className="text-center text-bold text-l text-red-700 font-semibold">
             {errors.images?.message}
@@ -191,12 +159,31 @@ export default function TakePhotoScreen() {
             {errors.categoryId?.message}
             {errors.shortDescription?.message}
           </Text>
-          <Button title="Add Notes" onPress={() => setOpen(true)}></Button>
         </View>
-        <View>
+        <View className="my-5 bg-orange-600">
+          <TouchableOpacity
+            style={{ alignItems: "center", justifyContent: "center" }}
+            onPress={pickFile}
+            disabled={isCapturing}
+          >
+            <MaterialIcons name="attach-file" size={36} color="#f1f1f1" />
+          </TouchableOpacity>
+        </View>
+
+        <View className="bg-orange-600">
           <TouchableOpacity
             style={{ alignItems: "center", justifyContent: "center" }}
             onPress={takePicture}
+            disabled={isCapturing}
+          >
+            <Entypo name="camera" size={36} color="#f1f1f1"></Entypo>
+          </TouchableOpacity>
+        </View>
+
+        <View className="bg-orange-600">
+          <TouchableOpacity
+            style={{ alignItems: "center", justifyContent: "center" }}
+            onPress={takeVideo}
             disabled={isCapturing}
           >
             <Entypo name="camera" size={36} color="#f1f1f1"></Entypo>
@@ -211,27 +198,10 @@ export default function TakePhotoScreen() {
           </View>
         )}
       </View>
-      <Modal
-        visible={open}
-        animationType="slide"
-        onRequestClose={() => setOpen(false)}
-      >
-        <Pressable onPress={() => setOpen(false)}>
-          <Text className="text-xl">Close</Text>
-        </Pressable>
-        <AddNotes
-          categories={dummyCategories}
-          control={control as unknown as Control<CaptureEntry>}
-          errors={errors}
-        ></AddNotes>
-        <View className="mt-10">
-          <Button title="Save" onPress={() => setOpen(false)}></Button>
-        </View>
-      </Modal>
       <View>
         <ScrollView horizontal showsHorizontalScrollIndicator={true}>
           {images.map((i) => (
-            <View key={i}>
+            <View key={i.uri}>
               <TouchableOpacity
                 onPress={() => {
                   setValue(
@@ -254,7 +224,7 @@ export default function TakePhotoScreen() {
                 </Text>
               </TouchableOpacity>
               <Image
-                source={{ uri: i }}
+                source={{ uri: i.uri }}
                 style={{ height: 100, width: 100 }}
               ></Image>
             </View>

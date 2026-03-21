@@ -66,7 +66,7 @@ export default function IncidentReport() {
     updateMediaFiles([...mediaFiles, ...medFiles]);
   };
 
-  const takePicture = async function () {
+  const takePicture = async () => {
     const picture = await ImagePicker.launchCameraAsync();
     if (picture.canceled) return;
     const medFiles = picture.assets?.map(toMediaFile) ?? [];
