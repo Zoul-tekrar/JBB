@@ -2,7 +2,7 @@ import {
   Category,
   SimpleCategoryDropdown,
 } from "@/components/app-components/simpleCategoryDropdown";
-import { CaptureEntry } from "@/features/capture/api/upload";
+import { CaptureEntry } from "@/features/capture/upload";
 import { Control, Controller, FieldErrors } from "react-hook-form";
 import { Text, TextInput, View } from "react-native";
 type NotesFormProps = {

@@ -5,7 +5,7 @@ import { dummyCategories } from "@/data/dummyData";
 import {
   CaptureEntry,
   CaptureEntryNoteSchema,
-} from "@/features/capture/api/upload";
+} from "@/features/capture/upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocalSearchParams } from "expo-router";
 import { useForm } from "react-hook-form";

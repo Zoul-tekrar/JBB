@@ -11,7 +11,7 @@ import {
   MediaFile,
   MediaUploads,
   PhotoCaptureEntryRequest,
-} from "@/features/capture/api/upload";
+} from "@/features/capture/upload";
 import Entypo from "@expo/vector-icons/Entypo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as DocumentPicker from "expo-document-picker";

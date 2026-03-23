@@ -8,7 +8,7 @@ import {
   CaptureEntry,
   MediaUploads,
   PhotoCaptureEntryRequest,
-} from "@/features/capture/api/upload";
+} from "@/features/capture/upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Audio } from "expo-av";
 import { useEffect, useState } from "react";

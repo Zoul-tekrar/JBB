@@ -45,6 +45,15 @@ export type MediaUploads = {
   mediaType: MediaType;
 };
 
+export type CreateUploadSasRequest = {
+  projectId: number;
+  files: MediaInformation[];
+};
+
+export type MediaInformation = {
+  contentType: string;
+};
+
 export type PhotoCaptureEntryRequest = CaptureEntry & {
   mediaEntries: MediaUploads[];
 };
@@ -54,3 +63,13 @@ export type AudioCaptureEntryRequest = CaptureEntry & {
 };
 
 export type MediaPermissionState = "undetermined" | "granted" | "denied";
+
+export type UploadItem = {
+  mediaItem: MediaFileFile;
+  blobSas: BlobSasResponse;
+};
+
+export type UploadToStorageResult = {
+  uploadItem: UploadItem;
+  response: Response;
+};

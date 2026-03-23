@@ -1,4 +1,4 @@
-import { MediaFile } from "@/features/capture/api/upload";
+import { MediaFile } from "@/features/capture/upload";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {

@@ -1,7 +1,4 @@
-import {
-  MediaFileFile,
-  MediaPermissionState,
-} from "@/features/capture/api/upload";
+import { MediaFileFile, MediaPermissionState } from "@/features/capture/upload";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 

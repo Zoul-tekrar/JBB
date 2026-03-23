@@ -4,12 +4,14 @@ import { API_BASE_URL } from "@/constants/urls";
 import {
   BlobSasResponse,
   CaptureEntry,
+  CreateUploadSasRequest,
   MediaFileFile,
   MediaUploads,
   PhotoCaptureEntryRequest,
   PhotoEntry,
   PhotoEntrySchema,
-} from "@/features/capture/api/upload";
+  UploadItem,
+} from "@/features/capture/upload";
 import Entypo from "@expo/vector-icons/Entypo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router, useLocalSearchParams } from "expo-router";
@@ -27,7 +29,12 @@ import {
 import { dummyCategories } from "@/data/dummyData";
 
 import { useCaptureMedia } from "@/components/capture/hooks/useCaptureMedia";
-import { showInfo } from "@/components/ui/toast";
+import LoadingPage from "@/components/design-components/overlayLoading";
+import { showError, showInfo } from "@/components/ui/toast";
+import {
+  getStorageUrls,
+  uploadToStorage,
+} from "@/features/capture/api/storage";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TakePhotoScreen() {
@@ -50,6 +57,7 @@ export default function TakePhotoScreen() {
 
   const images = watch("images");
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const {
     cameraPermission,
     mediaFilePermission,
@@ -89,33 +97,34 @@ export default function TakePhotoScreen() {
   };
 
   async function onSubmitPictures(formData: PhotoEntry) {
-    const payload = {
-      files: formData.images.map((i) => ({ contentType: "image/jpeg" })),
+    const uploadRequest: CreateUploadSasRequest = {
       projectId: Number(id),
+      files: formData.images.map((i) => ({
+        contentType: i.mediaType,
+      })),
     };
+    const toUpload: BlobSasResponse[] = await getStorageUrls(uploadRequest);
 
-    const res = await fetch(`${API_BASE_URL}/storage/store`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      setIsUploading(true);
+      const foo: UploadItem[] = toUpload.map((tu, i) => ({
+        blobSas: { blobName: tu.blobName, uploadUrl: tu.uploadUrl },
+        mediaItem: images[i],
+      }));
 
-    const toUpload: BlobSasResponse[] = await res.json();
+      const uploadingResults = await uploadToStorage(foo);
 
-    for (let i = 0; i < toUpload.length; i++) {
-      let uploadUrl = toUpload[i].uploadUrl;
-
-      const imageBody = await fetch(images[i]);
-      const imageBodyAsBlob = await imageBody.blob();
-
-      await fetch(uploadUrl, {
-        method: "PUT",
-        headers: {
-          "x-ms-blob-type": "BlockBlob",
-          "Content-Type": "image/jpeg",
-        },
-        body: imageBodyAsBlob,
+      uploadingResults.forEach((v, index) => {
+        if (v.status === "rejected") {
+          showError(`Couldn't upload actually ${v.reason}`);
+        }
       });
+    } catch (error) {
+      if (error instanceof Error) {
+      }
+      console.log(error);
+    } finally {
+      setIsUploading(false);
     }
 
     const mediaUploads = toUpload.map((u) => {
@@ -169,7 +178,15 @@ export default function TakePhotoScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      {isUploading && <LoadingPage loadingText="Uploading"></LoadingPage>}
       <View>
+        {images.map((i) => (
+          <View key={i.uri}>
+            <Text>name: {i.name}</Text>
+            <Text>uri: {i.uri}</Text>
+            <Text>mediaType: {i.mediaType}</Text>
+          </View>
+        ))}
         <JbbTitle title="Photos"></JbbTitle>
         <Text className="text-center text-bold text-l text-red-700 font-semibold">
           {errors.images?.message}
