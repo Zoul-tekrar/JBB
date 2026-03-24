@@ -32,7 +32,7 @@ import LoadingPage from "@/components/design-components/overlayLoading";
 import { showInfo, showSuccess } from "@/components/ui/toast";
 import {
   getStorageUrls,
-  insertPhotoCaptureEntryRequest,
+  insertMediaCaptureEntryRequest,
   uploadToStorage,
 } from "@/features/capture/api/storage";
 import { getMediaKindFromMime } from "@/features/utils/media";
@@ -66,7 +66,7 @@ export default function TakePhotoScreen() {
     mediaFilePermission,
     capturePicture,
     captureVideo,
-    captureSelectFile,
+    captureMultimediaFromLibrary,
   } = useCaptureMedia();
   const isBusy = uploadingState !== "idle";
 
@@ -92,7 +92,7 @@ export default function TakePhotoScreen() {
   };
 
   const pickFile = async () => {
-    const pickedFiles = await captureSelectFile();
+    const pickedFiles = await captureMultimediaFromLibrary();
     if (pickedFiles) {
       updateImages(pickedFiles);
     }
@@ -166,7 +166,7 @@ export default function TakePhotoScreen() {
 
     try {
       setUploadingState("submitting");
-      await insertPhotoCaptureEntryRequest(photoCaptureEntryRequest);
+      await insertMediaCaptureEntryRequest(photoCaptureEntryRequest);
     } catch (err) {
       setError("root", {
         message: "Submission failed",

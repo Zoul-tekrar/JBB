@@ -1,9 +1,9 @@
-import { MediaFile } from "@/features/capture/upload";
+import { MediaFileFile } from "@/features/capture/upload";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
-  mediaFiles: MediaFile[];
-  setMediaFiles: (mediaFiles: MediaFile[]) => void;
+  mediaFiles: MediaFileFile[];
+  setMediaFiles: (mediaFiles: MediaFileFile[]) => void;
 };
 
 export default function imageHorizontalDisplay(props: Props) {
@@ -11,7 +11,7 @@ export default function imageHorizontalDisplay(props: Props) {
     <ScrollView horizontal showsHorizontalScrollIndicator={true}>
       {props.mediaFiles
         .filter(
-          (i) => i.mimeType === "image/jpeg" || i.mimeType === "image/png",
+          (i) => i.mediaType === "image/jpeg" || i.mediaType === "image/png",
         )
         .map((i) => (
           <View key={i.name}>

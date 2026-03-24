@@ -1,4 +1,5 @@
 import { MediaFileFile, MediaPermissionState } from "@/features/capture/upload";
+import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 
@@ -9,6 +10,16 @@ function toMediaFileFromImage(
 ): MediaFileFile {
   return {
     name: pickerMedia.fileName ?? "",
+    mediaType: pickerMedia.mimeType ?? "",
+    uri: pickerMedia.uri,
+  };
+}
+
+function toMediaFileFromDocument(
+  pickerMedia: DocumentPicker.DocumentPickerAsset,
+): MediaFileFile {
+  return {
+    name: pickerMedia.file?.name ?? "",
     mediaType: pickerMedia.mimeType ?? "",
     uri: pickerMedia.uri,
   };
@@ -37,9 +48,36 @@ export function useCaptureMedia() {
     return result.granted;
   };
 
-  const captureSelectFile = async (): Promise<MediaFileFile[] | null> => {
+  const captureMultimediaFromLibrary = async (): Promise<
+    MediaFileFile[] | null
+  > => {
+    return await captureMediaFromLibrary(["images", "videos"]);
+  };
+
+  const capturePicturesFromLibrary = async (): Promise<
+    MediaFileFile[] | null
+  > => {
+    return await captureMediaFromLibrary(["images"]);
+  };
+
+  const captureDocumentsFromLibrary = async function () {
+    const fileResult = await DocumentPicker.getDocumentAsync({
+      type: "application/pdf",
+    });
+    if (fileResult.canceled || !fileResult.assets) return;
+
+    const medFiles: MediaFileFile[] = fileResult.assets?.map(
+      toMediaFileFromDocument,
+    );
+
+    return medFiles;
+  };
+
+  const captureMediaFromLibrary = async (
+    mediaType: ImagePicker.MediaType[],
+  ): Promise<MediaFileFile[] | null> => {
     const fileResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"],
+      mediaTypes: mediaType,
       allowsEditing: true,
       allowsMultipleSelection: true,
     });
@@ -74,6 +112,8 @@ export function useCaptureMedia() {
     mediaFilePermission,
     capturePicture,
     captureVideo,
-    captureSelectFile,
+    captureMultimediaFromLibrary,
+    capturePicturesFromLibrary,
+    captureDocumentsFromLibrary,
   };
 }

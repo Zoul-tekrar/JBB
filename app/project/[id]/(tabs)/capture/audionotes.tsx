@@ -85,9 +85,6 @@ export default function AudioNotes() {
     let toUpload: BlobSasResponse[] = [];
     try {
       setUploadingState("retrieving-sas-links");
-      await new Promise((resolve) => {
-        setTimeout(resolve, 2000);
-      });
       toUpload = await getStorageUrls(uploadRequest);
     } catch (error) {
       console.error(error);
@@ -109,9 +106,6 @@ export default function AudioNotes() {
     ];
 
     try {
-      await new Promise((resolve) => {
-        setTimeout(resolve, 2000);
-      });
       setUploadingState("uploading");
       const uploadingResults = await uploadToStorage(uploadAudioItem);
       if (uploadingResults.some((ur) => ur.status === "rejected")) {
@@ -147,9 +141,6 @@ export default function AudioNotes() {
     console.log(photoCaptureEntryRequest);
 
     try {
-      await new Promise((resolve) => {
-        setTimeout(resolve, 2000);
-      });
       setUploadingState("submitting");
       await insertMediaCaptureEntryRequest(photoCaptureEntryRequest);
     } catch (err) {
