@@ -2,21 +2,30 @@ import AddNotes from "@/components/addnotes";
 import AudioPreview from "@/components/app-components/audio/audioPreview";
 import { dummyCategories } from "@/data/dummyData";
 import {
-  AudioEntry,
-  AudioEntrySchema,
   BlobSasResponse,
   CaptureEntry,
+  CreateUploadSasRequest,
   MediaCaptureEntryRequest,
+  MediaFileFile,
   MediaUploads,
+  PhotoEntry,
+  PhotoEntrySchema,
+  UploadItem,
 } from "@/features/capture/upload";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Audio } from "expo-av";
-import { useEffect, useState } from "react";
 import { Control, useForm } from "react-hook-form";
 import { Button, Text, View } from "react-native";
 
-import { API_BASE_URL } from "@/constants/urls";
+import { useAudioCapture } from "@/components/capture/hooks/useAudioCapture";
+import { showSuccess } from "@/components/ui/toast";
+import {
+  getStorageUrls,
+  insertMediaCaptureEntryRequest,
+  uploadToStorage,
+} from "@/features/capture/api/storage";
+import { getMediaKindFromMime } from "@/features/utils/media";
 import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import "../../../../../global.css";
 
 export default function AudioNotes() {
@@ -25,119 +34,132 @@ export default function AudioNotes() {
     handleSubmit,
     watch,
     setValue,
+    setError,
     formState: { errors },
-  } = useForm<AudioEntry>({
-    resolver: zodResolver(AudioEntrySchema),
+  } = useForm<PhotoEntry>({
+    resolver: zodResolver(PhotoEntrySchema),
     defaultValues: {
       categoryId: 1,
       shortDescription: "",
-      audioUri: "",
+      images: [],
     },
   });
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [permission, setPermission] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [duration, setDuration] = useState(0);
-  const [audioState, setAudioState] = useState<
-    "idle" | "recording" | "stopped" | "uploading"
+  const [uploadingState, setUploadingState] = useState<
+    "idle" | "uploading" | "submitting" | "retrieving-sas-links"
   >("idle");
-  const audioUri = watch("audioUri");
+  const {
+    audioPermission,
+    recording,
+    duration,
+    audioState,
+    startRecording,
+    stopRecording,
+  } = useAudioCapture();
+  const audioUri = watch("images");
 
-  useEffect(() => {
-    async function requestPermission() {
-      setPermission((await Audio.requestPermissionsAsync()).granted);
-    }
-
-    requestPermission();
-  }, []);
-
-  async function startRecording() {
-    if (!permission) return;
-    const recording = new Audio.Recording();
-    await recording.prepareToRecordAsync(
-      Audio.RecordingOptionsPresets.HIGH_QUALITY,
-    );
-    await recording.startAsync();
-    setAudioState("recording");
-    setValue("audioUri", null);
-    recording.setOnRecordingStatusUpdate((status) => {
-      setDuration(status.durationMillis ?? 0);
-    });
-    setRecording(recording);
+  async function beginRecording() {
+    await startRecording();
+    setValue("images", []);
   }
 
-  async function saveRecording(formData: AudioEntry) {
-    if (!audioUri) return;
+  async function endRecording() {
+    await stopRecording();
+    if (recording)
+      updateImages([
+        {
+          uri: recording.getURI() ?? "",
+          mediaType: "audio/mp4",
+          name: "cached-audio",
+        },
+      ]);
+  }
 
-    let payload = {
+  async function saveRecording(formData: PhotoEntry) {
+    let uploadRequest: CreateUploadSasRequest = {
       files: [{ contentType: "audio/m4a" }],
       projectId: Number(id),
     };
-    const res = await fetch(`${API_BASE_URL}/storage/store`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
 
-    const toUpload: BlobSasResponse[] = await res.json();
-    let uploadUrl = toUpload[0].uploadUrl;
+    let toUpload: BlobSasResponse[] = [];
+    try {
+      setUploadingState("retrieving-sas-links");
+      toUpload = await getStorageUrls(uploadRequest);
+    } catch (error) {
+      console.error(error);
+      setError("images", {
+        type: "server",
+        message:
+          "Something went wrong while retrieving SAS links from the server",
+      });
+      setUploadingState("idle");
+      return;
+    }
 
-    const audioBody = await fetch(audioUri);
-    const imageBodyAsBlob = await audioBody.blob();
-
-    await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "x-ms-blob-type": "BlockBlob",
-        "Content-Type": "image/jpeg",
+    const uploadAudioItem: UploadItem[] = [
+      {
+        blobSas: toUpload[0],
+        mediaItem: formData.images[0],
       },
-      body: imageBodyAsBlob,
-    });
+    ];
 
-    const mediaUploads = toUpload.map((u) => {
-      let m: MediaUploads = {
-        blobName: u.blobName,
-        mediaType: "audio",
-      };
-      return m;
-    });
+    try {
+      setUploadingState("uploading");
+      const uploadingResults = await uploadToStorage(uploadAudioItem);
+      if (uploadingResults.some((ur) => ur.status === "rejected")) {
+        setError("images", {
+          type: "server",
+          message: "Upload failed. Please try again.",
+        });
+        setUploadingState("idle");
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+      setError("images", {
+        type: "server",
+        message: "Upload failed, try again.",
+      });
+      setUploadingState("idle");
+      return;
+    }
 
-    const photoCaptureEntryRequest: MediaCaptureEntryRequest = {
-      categoryId: formData.categoryId,
-      mediaEntries: mediaUploads,
-      shortDescription: formData.shortDescription,
+    const mediaUpload: MediaUploads = {
+      blobName: uploadAudioItem[0].blobSas.blobName,
+      mediaType: getMediaKindFromMime(uploadAudioItem[0].mediaItem.mediaType),
     };
 
-    await fetch(`${API_BASE_URL}/captureentry`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...photoCaptureEntryRequest,
-        projectId: Number(id),
-        type: "Audio",
-      }),
-    });
-    // NO wrong scenario, no loaders, bare minimum right now. A bit duplication also
+    const photoCaptureEntryRequest: MediaCaptureEntryRequest = {
+      projectId: Number(id),
+      type: "audio",
+      categoryId: formData.categoryId,
+      mediaEntries: [mediaUpload],
+      shortDescription: formData.shortDescription,
+    };
+    try {
+      setUploadingState("submitting");
+      await insertMediaCaptureEntryRequest(photoCaptureEntryRequest);
+    } catch (err) {
+      setError("root", {
+        message: "Submission failed",
+      });
+      console.error(err);
+      setUploadingState("idle");
+      return;
+    }
+
+    showSuccess("Submitted capture entries successfully");
     router.replace({
       pathname: "/project/[id]/capture",
       params: { id },
     });
   }
 
-  async function stopRecording() {
-    if (!recording) return;
-    await recording.stopAndUnloadAsync();
-    setAudioState("stopped");
-    setValue("audioUri", recording.getURI());
-    console.log();
-    setRecording(null);
-  }
-
   return (
     <View className="flex-1">
       <View>
         <Text className="text-center text-bold text-l text-red-700 font-semibold">
-          {errors.audioUri?.message}
+          {errors.images?.root?.message}
         </Text>
         <AddNotes
           categories={dummyCategories}
@@ -146,11 +168,11 @@ export default function AudioNotes() {
         ></AddNotes>
 
         <Text>{duration}s</Text>
-        {audioUri && <AudioPreview uri={audioUri}></AudioPreview>}
+        {audioUri[0] && <AudioPreview uri={audioUri[0].uri}></AudioPreview>}
         <View>
           <Button
             title={audioState !== "recording" ? "Record" : "Stop"}
-            onPress={recording ? stopRecording : startRecording}
+            onPress={recording ? endRecording : beginRecording}
           ></Button>
         </View>
       </View>
@@ -165,4 +187,7 @@ export default function AudioNotes() {
       )}
     </View>
   );
+  function updateImages(updatedImages: MediaFileFile[]) {
+    setValue("images", [...audioUri, ...updatedImages]);
+  }
 }

@@ -51,7 +51,7 @@ export async function uploadToStorage(uploadItems: UploadItem[]) {
   return await Promise.allSettled(imagesToUpload);
 }
 
-export async function insertPhotoCaptureEntryRequest(
+export async function insertMediaCaptureEntryRequest(
   photoCaptureEntryRequest: MediaCaptureEntryRequest,
 ) {
   const uploadResponse = await fetch(`${API_BASE_URL}/captureentry`, {
