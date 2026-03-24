@@ -10,20 +10,19 @@ export default function Capture() {
     <View>
       <JbbTitle title="Capture Menu"></JbbTitle>
       <Button
-        title="Photo"
+        title="Add note"
         onPress={() =>
           router.push({
-            pathname: "/project/[id]/capture/photo",
+            pathname: "/project/[id]/capture/notes",
             params: { id: id },
           })
         }
       ></Button>
-
       <Button
-        title="Video Walkthrough"
+        title="Photo/Video"
         onPress={() =>
           router.push({
-            pathname: "/project/[id]/capture/video",
+            pathname: "/project/[id]/capture/photo",
             params: { id: id },
           })
         }
@@ -34,15 +33,6 @@ export default function Capture() {
         onPress={() =>
           router.push({
             pathname: "/project/[id]/capture/audionotes",
-            params: { id: id },
-          })
-        }
-      ></Button>
-      <Button
-        title="Add note"
-        onPress={() =>
-          router.push({
-            pathname: "/project/[id]/capture/notes",
             params: { id: id },
           })
         }
