@@ -1,22 +1,29 @@
 import AddNotes from "@/components/addnotes";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
-import { API_BASE_URL } from "@/constants/urls";
+import LoadingPage from "@/components/design-components/overlayLoading";
+import { showSuccess } from "@/components/ui/toast";
 import { dummyCategories } from "@/data/dummyData";
+import { createCaptureEntryNote } from "@/features/capture/api/storage";
 import {
   CaptureEntry,
   CaptureEntryNoteSchema,
+  CaptureEntryRequest,
 } from "@/features/capture/upload";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, View } from "react-native";
 
 export default function Notes() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const [pageState, setPageState] = useState<"idle" | "submitting">("idle");
+  const isBusy = pageState !== "idle";
 
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<CaptureEntry>({
     resolver: zodResolver(CaptureEntryNoteSchema),
@@ -27,29 +34,49 @@ export default function Notes() {
   });
 
   async function onSubmit(formData: CaptureEntry) {
+    const captureEntryRequest: CaptureEntryRequest = {
+      projectId: Number(id),
+      categoryId: formData.categoryId,
+      shortDescription: formData.shortDescription,
+      type: "note",
+    };
     try {
-      const created = await createCaptureEntryNote(formData);
-    } catch (e) {}
-  }
+      setPageState("submitting");
+      await createCaptureEntryNote(captureEntryRequest);
+    } catch (error) {
+      console.error(error);
+      setError("root", {
+        type: "server",
+        message: "Failed to save note. Please try again.",
+      });
+      return;
+    } finally {
+      setPageState("idle");
+    }
 
-  async function createCaptureEntryNote(form: CaptureEntry): Promise<void> {
-    console.log(Number(id));
-    const res = await fetch(`${API_BASE_URL}/captureentry`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, type: "Note", projectId: Number(id) }),
+    showSuccess("Note added succesfully");
+    router.replace({
+      pathname: "/project/[id]/capture",
+      params: { id },
     });
   }
 
   return (
-    <View>
-      <JbbTitle title={"Add notes"}></JbbTitle>
+    <View style={{ flex: 1 }}>
+      <JbbTitle title={"Add note"}></JbbTitle>
+      {pageState === "submitting" && (
+        <LoadingPage loadingText="Submitting Notes"></LoadingPage>
+      )}
       <AddNotes
         categories={dummyCategories}
         control={control}
         errors={errors}
       ></AddNotes>
-      <Button title="Add note" onPress={handleSubmit(onSubmit)}></Button>
+      <Button
+        disabled={isBusy}
+        title="Add note"
+        onPress={handleSubmit(onSubmit)}
+      ></Button>
     </View>
   );
 }

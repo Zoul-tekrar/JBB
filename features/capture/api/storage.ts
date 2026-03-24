@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "@/constants/urls";
 import {
   BlobSasResponse,
+  CaptureEntryRequest,
   CreateUploadSasRequest,
   MediaCaptureEntryRequest,
   UploadItem,
@@ -62,5 +63,20 @@ export async function insertPhotoCaptureEntryRequest(
   });
   if (!uploadResponse.ok) {
     throw new Error(`Failed to add capture entries ${uploadResponse.status}`);
+  }
+}
+
+export async function createCaptureEntryNote(
+  form: CaptureEntryRequest,
+): Promise<void> {
+  const notesSubmissionResponse = await fetch(`${API_BASE_URL}/captureentry`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...form }),
+  });
+  if (!notesSubmissionResponse.ok) {
+    throw new Error(
+      `Failed to add capture entries ${notesSubmissionResponse.status}`,
+    );
   }
 }

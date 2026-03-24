@@ -54,9 +54,12 @@ export type MediaInformation = {
   contentType: string;
 };
 
-export type MediaCaptureEntryRequest = CaptureEntry & {
+export type CaptureEntryRequest = CaptureEntry & {
   projectId: number;
   type: CaptureType;
+};
+
+export type MediaCaptureEntryRequest = CaptureEntryRequest & {
   mediaEntries: MediaUploads[];
 };
 
