@@ -6,8 +6,8 @@ import {
   AudioEntrySchema,
   BlobSasResponse,
   CaptureEntry,
+  MediaCaptureEntryRequest,
   MediaUploads,
-  PhotoCaptureEntryRequest,
 } from "@/features/capture/upload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Audio } from "expo-av";
@@ -102,7 +102,7 @@ export default function AudioNotes() {
       return m;
     });
 
-    const photoCaptureEntryRequest: PhotoCaptureEntryRequest = {
+    const photoCaptureEntryRequest: MediaCaptureEntryRequest = {
       categoryId: formData.categoryId,
       mediaEntries: mediaUploads,
       shortDescription: formData.shortDescription,

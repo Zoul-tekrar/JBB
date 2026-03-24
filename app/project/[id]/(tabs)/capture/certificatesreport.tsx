@@ -6,11 +6,11 @@ import { dummyCategories } from "@/data/dummyData";
 import {
   BlobSasResponse,
   CaptureEntry,
+  MediaCaptureEntryRequest,
   MediaEntry,
   MediaEntrySchema,
   MediaFile,
   MediaUploads,
-  PhotoCaptureEntryRequest,
 } from "@/features/capture/upload";
 import Entypo from "@expo/vector-icons/Entypo";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -120,7 +120,7 @@ export default function IncidentReport() {
       return m;
     });
 
-    const photoCaptureEntryRequest: PhotoCaptureEntryRequest = {
+    const photoCaptureEntryRequest: MediaCaptureEntryRequest = {
       categoryId: formData.categoryId,
       mediaEntries: mediaUploads,
       shortDescription: formData.shortDescription,

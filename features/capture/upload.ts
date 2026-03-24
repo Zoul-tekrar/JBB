@@ -1,4 +1,4 @@
-import { MediaType } from "@/domain/project";
+import { CaptureType, MediaType } from "@/domain/project";
 import { z } from "zod";
 
 export const CaptureEntryNoteSchema = z.object({
@@ -54,7 +54,9 @@ export type MediaInformation = {
   contentType: string;
 };
 
-export type PhotoCaptureEntryRequest = CaptureEntry & {
+export type MediaCaptureEntryRequest = CaptureEntry & {
+  projectId: number;
+  type: CaptureType;
   mediaEntries: MediaUploads[];
 };
 

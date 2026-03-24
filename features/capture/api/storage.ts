@@ -2,7 +2,7 @@ import { API_BASE_URL } from "@/constants/urls";
 import {
   BlobSasResponse,
   CreateUploadSasRequest,
-  PhotoCaptureEntryRequest,
+  MediaCaptureEntryRequest,
   UploadItem,
   UploadToStorageResult,
 } from "../upload";
@@ -51,16 +51,13 @@ export async function uploadToStorage(uploadItems: UploadItem[]) {
 }
 
 export async function insertPhotoCaptureEntryRequest(
-  photoCaptureEntryRequest: PhotoCaptureEntryRequest,
-  id: string,
+  photoCaptureEntryRequest: MediaCaptureEntryRequest,
 ) {
   const uploadResponse = await fetch(`${API_BASE_URL}/captureentry`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       ...photoCaptureEntryRequest,
-      projectId: Number(id),
-      type: "Photo",
     }),
   });
   if (!uploadResponse.ok) {

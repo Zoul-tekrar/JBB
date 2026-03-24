@@ -4,9 +4,9 @@ import {
   BlobSasResponse,
   CaptureEntry,
   CreateUploadSasRequest,
+  MediaCaptureEntryRequest,
   MediaFileFile,
   MediaUploads,
-  PhotoCaptureEntryRequest,
   PhotoEntry,
   PhotoEntrySchema,
   UploadItem,
@@ -156,7 +156,9 @@ export default function TakePhotoScreen() {
       return m;
     });
 
-    const photoCaptureEntryRequest: PhotoCaptureEntryRequest = {
+    const photoCaptureEntryRequest: MediaCaptureEntryRequest = {
+      projectId: Number(id),
+      type: "photovideo",
       categoryId: formData.categoryId,
       mediaEntries: mediaUploads,
       shortDescription: formData.shortDescription,
@@ -164,7 +166,7 @@ export default function TakePhotoScreen() {
 
     try {
       setUploadingState("submitting");
-      await insertPhotoCaptureEntryRequest(photoCaptureEntryRequest, id);
+      await insertPhotoCaptureEntryRequest(photoCaptureEntryRequest);
     } catch (err) {
       setError("root", {
         message: "Submission failed",

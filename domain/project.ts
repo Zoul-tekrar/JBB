@@ -1,7 +1,6 @@
 export type UserRole = "admin" | "worker" | "viewer";
 export type CaptureType =
-  | "photo"
-  | "video"
+  | "photovideo"
   | "audio"
   | "note"
   | "incident"
