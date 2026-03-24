@@ -1,6 +1,5 @@
 import AddNotes from "@/components/addnotes";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
-import { API_BASE_URL } from "@/constants/urls";
 import {
   BlobSasResponse,
   CaptureEntry,
@@ -30,11 +29,13 @@ import { dummyCategories } from "@/data/dummyData";
 
 import { useCaptureMedia } from "@/components/capture/hooks/useCaptureMedia";
 import LoadingPage from "@/components/design-components/overlayLoading";
-import { showError, showInfo } from "@/components/ui/toast";
+import { showInfo, showSuccess } from "@/components/ui/toast";
 import {
   getStorageUrls,
+  insertPhotoCaptureEntryRequest,
   uploadToStorage,
 } from "@/features/capture/api/storage";
+import { getMediaKindFromMime } from "@/features/utils/media";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TakePhotoScreen() {
@@ -43,6 +44,7 @@ export default function TakePhotoScreen() {
     handleSubmit,
     watch,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<PhotoEntry>({
     resolver: zodResolver(PhotoEntrySchema),
@@ -56,8 +58,9 @@ export default function TakePhotoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const images = watch("images");
-  const [isCapturing, setIsCapturing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingState, setUploadingState] = useState<
+    "idle" | "uploading" | "submitting" | "retrieving-sas-links"
+  >("idle");
   const {
     cameraPermission,
     mediaFilePermission,
@@ -65,12 +68,11 @@ export default function TakePhotoScreen() {
     captureVideo,
     captureSelectFile,
   } = useCaptureMedia();
+  const isBusy = uploadingState !== "idle";
 
-  function updateImages(foo: MediaFileFile[]) {
+  function updateImages(updatedImages: MediaFileFile[]) {
     showInfo("Added an image");
-    if (foo) {
-      setValue("images", [...images, ...foo]);
-    }
+    setValue("images", [...images, ...updatedImages]);
   }
 
   const takePicture = async () => {
@@ -103,34 +105,53 @@ export default function TakePhotoScreen() {
         contentType: i.mediaType,
       })),
     };
-    const toUpload: BlobSasResponse[] = await getStorageUrls(uploadRequest);
-
+    const imagesFormUpload = formData.images;
+    let toUpload: BlobSasResponse[] = [];
     try {
-      setIsUploading(true);
-      const foo: UploadItem[] = toUpload.map((tu, i) => ({
-        blobSas: { blobName: tu.blobName, uploadUrl: tu.uploadUrl },
-        mediaItem: images[i],
-      }));
-
-      const uploadingResults = await uploadToStorage(foo);
-
-      uploadingResults.forEach((v, index) => {
-        if (v.status === "rejected") {
-          showError(`Couldn't upload actually ${v.reason}`);
-        }
-      });
+      setUploadingState("retrieving-sas-links");
+      toUpload = await getStorageUrls(uploadRequest);
     } catch (error) {
-      if (error instanceof Error) {
-      }
-      console.log(error);
-    } finally {
-      setIsUploading(false);
+      console.error(error);
+      setError("images", {
+        type: "server",
+        message:
+          "Something went wrong while retrieving SAS links from the server",
+      });
+      setUploadingState("idle");
+      return;
     }
 
-    const mediaUploads = toUpload.map((u) => {
+    const uploadMediaItems: UploadItem[] = toUpload.map((tu, i) => ({
+      blobSas: { blobName: tu.blobName, uploadUrl: tu.uploadUrl },
+      mediaItem: imagesFormUpload[i],
+    }));
+
+    try {
+      setUploadingState("uploading");
+
+      const uploadingResults = await uploadToStorage(uploadMediaItems);
+      if (uploadingResults.some((ur) => ur.status === "rejected")) {
+        setError("images", {
+          type: "server",
+          message: "Upload failed. Please try again.",
+        });
+        setUploadingState("idle");
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+      setError("images", {
+        type: "server",
+        message: "Upload failed, try again.",
+      });
+      setUploadingState("idle");
+      return;
+    }
+
+    const mediaUploads = uploadMediaItems.map((u) => {
       let m: MediaUploads = {
-        blobName: u.blobName,
-        mediaType: "photo",
+        blobName: u.blobSas.blobName,
+        mediaType: getMediaKindFromMime(u.mediaItem.mediaType),
       };
       return m;
     });
@@ -141,17 +162,19 @@ export default function TakePhotoScreen() {
       shortDescription: formData.shortDescription,
     };
 
-    await fetch(`${API_BASE_URL}/captureentry`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...photoCaptureEntryRequest,
-        projectId: Number(id),
-        type: "Photo",
-      }),
-    });
-    // NO wrong scenario right now. Finish this after
+    try {
+      setUploadingState("submitting");
+      await insertPhotoCaptureEntryRequest(photoCaptureEntryRequest, id);
+    } catch (err) {
+      setError("root", {
+        message: "Submission failed",
+      });
+      console.error(err);
+      setUploadingState("idle");
+      return;
+    }
 
+    showSuccess("Submitted capture entries successfully");
     router.replace({
       pathname: "/project/[id]/capture",
       params: { id },
@@ -178,7 +201,15 @@ export default function TakePhotoScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      {isUploading && <LoadingPage loadingText="Uploading"></LoadingPage>}
+      {uploadingState === "uploading" && (
+        <LoadingPage loadingText="Uploading"></LoadingPage>
+      )}
+      {uploadingState === "submitting" && (
+        <LoadingPage loadingText="Submitting"></LoadingPage>
+      )}
+      {uploadingState === "retrieving-sas-links" && (
+        <LoadingPage loadingText="Retrieving SAS links"></LoadingPage>
+      )}
       <View>
         {images.map((i) => (
           <View key={i.uri}>
@@ -203,20 +234,12 @@ export default function TakePhotoScreen() {
       </View>
 
       <View className="mt-4">
-        <View>
-          <Text className="text-center text-bold text-l text-red-700 font-semibold">
-            {errors.images?.message}
-            {errors.root?.message}
-            {errors.categoryId?.message}
-            {errors.shortDescription?.message}
-          </Text>
-        </View>
         {mediaFilePermission && (
           <View className="my-5 bg-orange-600">
             <TouchableOpacity
               style={{ alignItems: "center", justifyContent: "center" }}
               onPress={pickFile}
-              disabled={isCapturing}
+              disabled={uploadingState !== "idle"}
             >
               <MaterialIcons name="attach-file" size={36} color="#f1f1f1" />
             </TouchableOpacity>
@@ -229,7 +252,7 @@ export default function TakePhotoScreen() {
               <TouchableOpacity
                 style={{ alignItems: "center", justifyContent: "center" }}
                 onPress={takePicture}
-                disabled={isCapturing}
+                disabled={isBusy}
               >
                 <Entypo name="camera" size={36} color="#f1f1f1"></Entypo>
               </TouchableOpacity>
@@ -238,7 +261,7 @@ export default function TakePhotoScreen() {
               <TouchableOpacity
                 style={{ alignItems: "center", justifyContent: "center" }}
                 onPress={takeVideo}
-                disabled={isCapturing}
+                disabled={isBusy}
               >
                 <Entypo name="camera" size={36} color="#f1f1f1"></Entypo>
               </TouchableOpacity>
@@ -251,6 +274,7 @@ export default function TakePhotoScreen() {
             <Button
               title="Submit Pictures"
               onPress={handleSubmit(onSubmitPictures)}
+              disabled={isBusy}
             ></Button>
           </View>
         )}
@@ -260,6 +284,7 @@ export default function TakePhotoScreen() {
           {images.map((i) => (
             <View key={i.uri}>
               <TouchableOpacity
+                disabled={isBusy}
                 onPress={() => {
                   setValue(
                     "images",

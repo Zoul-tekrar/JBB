@@ -2,23 +2,29 @@ import { API_BASE_URL } from "@/constants/urls";
 import {
   BlobSasResponse,
   CreateUploadSasRequest,
+  PhotoCaptureEntryRequest,
   UploadItem,
   UploadToStorageResult,
 } from "../upload";
 
 export async function getStorageUrls(payload: CreateUploadSasRequest) {
-  const res = await fetch(`${API_BASE_URL}/storage/store`, {
+  const uploadResponse = await fetch(`${API_BASE_URL}/storage/store`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
-  const toUpload: BlobSasResponse[] = await res.json();
+  if (!uploadResponse.ok) {
+    throw new Error(
+      `Failed to retrieve storage URLs: ${uploadResponse.status}`,
+    );
+  }
+  const toUpload: BlobSasResponse[] = await uploadResponse.json();
   return toUpload;
 }
 
-export async function uploadToStorage(toUpload: UploadItem[]) {
-  const bar = toUpload.map(async (tu, i) => {
+export async function uploadToStorage(uploadItems: UploadItem[]) {
+  const imagesToUpload = uploadItems.map(async (tu) => {
     const imageBody = await fetch(tu.mediaItem.uri);
     const imageBodyAsBlob = await imageBody.blob();
 
@@ -30,17 +36,34 @@ export async function uploadToStorage(toUpload: UploadItem[]) {
       },
       body: imageBodyAsBlob,
     });
+    if (!uploadResponse.ok) {
+      throw new Error(`Upload failed with status ${uploadResponse.status}`);
+    }
     const uploadResult: UploadToStorageResult = {
       uploadItem: tu,
       response: uploadResponse,
     };
 
-    if (!uploadResponse.ok) {
-      throw new Error(`Upload failed with status ${uploadResponse.status}`);
-    }
-
     return uploadResult;
   });
 
-  return await Promise.allSettled(bar);
+  return await Promise.allSettled(imagesToUpload);
+}
+
+export async function insertPhotoCaptureEntryRequest(
+  photoCaptureEntryRequest: PhotoCaptureEntryRequest,
+  id: string,
+) {
+  const uploadResponse = await fetch(`${API_BASE_URL}/captureentry`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...photoCaptureEntryRequest,
+      projectId: Number(id),
+      type: "Photo",
+    }),
+  });
+  if (!uploadResponse.ok) {
+    throw new Error(`Failed to add capture entries ${uploadResponse.status}`);
+  }
 }
