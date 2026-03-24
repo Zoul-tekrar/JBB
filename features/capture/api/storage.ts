@@ -64,6 +64,7 @@ export async function insertMediaCaptureEntryRequest(
   if (!uploadResponse.ok) {
     throw new Error(`Failed to add capture entries ${uploadResponse.status}`);
   }
+  console.log(uploadResponse);
 }
 
 export async function createCaptureEntryNote(

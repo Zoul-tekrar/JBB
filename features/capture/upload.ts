@@ -1,33 +1,20 @@
 import { CaptureType, MediaType } from "@/domain/project";
 import { z } from "zod";
 
-export const CaptureEntryNoteSchema = z.object({
-  categoryId: z.number(),
-  shortDescription: z.string().trim().max(50).min(1),
-});
-
-export type CaptureEntry = z.infer<typeof CaptureEntryNoteSchema>;
-
 export const MediaUploadSchema = z.object({
   uri: z.string(),
   name: z.string(),
   mediaType: z.string(),
 });
-export const PhotoEntrySchema = CaptureEntryNoteSchema.extend({
-  images: z.array(MediaUploadSchema),
-});
 
-export const AudioEntrySchema = CaptureEntryNoteSchema.extend({
-  audioUri: z.string().trim().min(10).nullable(),
+export const CaptureEntryNoteSchema = z.object({
+  categoryId: z.number(),
+  shortDescription: z.string().trim().max(50).min(1),
 });
 
 export const MediaEntrySchema = CaptureEntryNoteSchema.extend({
-  mediaFiles: z.array(z.string().min(2)).min(1),
+  images: z.array(MediaUploadSchema),
 });
-
-export type PhotoEntry = z.infer<typeof PhotoEntrySchema>;
-
-export type AudioEntry = z.infer<typeof AudioEntrySchema>;
 
 export type MediaEntry = z.infer<typeof MediaEntrySchema>;
 
@@ -54,16 +41,14 @@ export type MediaInformation = {
   contentType: string;
 };
 
+export type CaptureEntry = z.infer<typeof CaptureEntryNoteSchema>;
+
 export type CaptureEntryRequest = CaptureEntry & {
   projectId: number;
   type: CaptureType;
 };
 
 export type MediaCaptureEntryRequest = CaptureEntryRequest & {
-  mediaEntries: MediaUploads[];
-};
-
-export type AudioCaptureEntryRequest = CaptureEntry & {
   mediaEntries: MediaUploads[];
 };
 

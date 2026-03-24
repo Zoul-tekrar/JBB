@@ -34,7 +34,7 @@ export default function IncidentReport() {
     defaultValues: {
       categoryId: 1,
       shortDescription: "",
-      mediaFiles: [],
+      images: [],
     },
   });
 
@@ -77,7 +77,7 @@ export default function IncidentReport() {
   function updateMediaFiles(mediaFiles: MediaFile[]) {
     setMediaFiles(mediaFiles);
     setValue(
-      "mediaFiles",
+      "images",
       mediaFiles.map((mf) => mf.uri),
     );
   }

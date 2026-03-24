@@ -5,10 +5,10 @@ import {
   CaptureEntry,
   CreateUploadSasRequest,
   MediaCaptureEntryRequest,
+  MediaEntry,
+  MediaEntrySchema,
   MediaFileFile,
   MediaUploads,
-  PhotoEntry,
-  PhotoEntrySchema,
   UploadItem,
 } from "@/features/capture/upload";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -46,8 +46,8 @@ export default function TakePhotoScreen() {
     setValue,
     setError,
     formState: { errors },
-  } = useForm<PhotoEntry>({
-    resolver: zodResolver(PhotoEntrySchema),
+  } = useForm<MediaEntry>({
+    resolver: zodResolver(MediaEntrySchema),
     defaultValues: {
       categoryId: 1,
       shortDescription: "",
@@ -98,7 +98,7 @@ export default function TakePhotoScreen() {
     }
   };
 
-  async function onSubmitPictures(formData: PhotoEntry) {
+  async function onSubmitPictures(formData: MediaEntry) {
     const uploadRequest: CreateUploadSasRequest = {
       projectId: Number(id),
       files: formData.images.map((i) => ({

@@ -6,10 +6,10 @@ import {
   CaptureEntry,
   CreateUploadSasRequest,
   MediaCaptureEntryRequest,
+  MediaEntry,
+  MediaEntrySchema,
   MediaFileFile,
   MediaUploads,
-  PhotoEntry,
-  PhotoEntrySchema,
   UploadItem,
 } from "@/features/capture/upload";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +17,7 @@ import { Control, useForm } from "react-hook-form";
 import { Button, Text, View } from "react-native";
 
 import { useAudioCapture } from "@/components/capture/hooks/useAudioCapture";
+import LoadingPage from "@/components/design-components/overlayLoading";
 import { showSuccess } from "@/components/ui/toast";
 import {
   getStorageUrls,
@@ -36,8 +37,8 @@ export default function AudioNotes() {
     setValue,
     setError,
     formState: { errors },
-  } = useForm<PhotoEntry>({
-    resolver: zodResolver(PhotoEntrySchema),
+  } = useForm<MediaEntry>({
+    resolver: zodResolver(MediaEntrySchema),
     defaultValues: {
       categoryId: 1,
       shortDescription: "",
@@ -75,7 +76,7 @@ export default function AudioNotes() {
       ]);
   }
 
-  async function saveRecording(formData: PhotoEntry) {
+  async function saveRecording(formData: MediaEntry) {
     let uploadRequest: CreateUploadSasRequest = {
       files: [{ contentType: "audio/m4a" }],
       projectId: Number(id),
@@ -84,6 +85,9 @@ export default function AudioNotes() {
     let toUpload: BlobSasResponse[] = [];
     try {
       setUploadingState("retrieving-sas-links");
+      await new Promise((resolve) => {
+        setTimeout(resolve, 2000);
+      });
       toUpload = await getStorageUrls(uploadRequest);
     } catch (error) {
       console.error(error);
@@ -92,6 +96,7 @@ export default function AudioNotes() {
         message:
           "Something went wrong while retrieving SAS links from the server",
       });
+
       setUploadingState("idle");
       return;
     }
@@ -104,6 +109,9 @@ export default function AudioNotes() {
     ];
 
     try {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 2000);
+      });
       setUploadingState("uploading");
       const uploadingResults = await uploadToStorage(uploadAudioItem);
       if (uploadingResults.some((ur) => ur.status === "rejected")) {
@@ -136,7 +144,12 @@ export default function AudioNotes() {
       mediaEntries: [mediaUpload],
       shortDescription: formData.shortDescription,
     };
+    console.log(photoCaptureEntryRequest);
+
     try {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 2000);
+      });
       setUploadingState("submitting");
       await insertMediaCaptureEntryRequest(photoCaptureEntryRequest);
     } catch (err) {
@@ -157,9 +170,21 @@ export default function AudioNotes() {
 
   return (
     <View className="flex-1">
+      {uploadingState === "uploading" && (
+        <LoadingPage loadingText="Uploading"></LoadingPage>
+      )}
+      {uploadingState === "submitting" && (
+        <LoadingPage loadingText="Submitting"></LoadingPage>
+      )}
+      {uploadingState === "retrieving-sas-links" && (
+        <LoadingPage loadingText="Retrieving SAS links"></LoadingPage>
+      )}
       <View>
         <Text className="text-center text-bold text-l text-red-700 font-semibold">
-          {errors.images?.root?.message}
+          {errors.images?.message}
+          {errors.root?.message}
+          {errors.categoryId?.message}
+          {errors.shortDescription?.message}
         </Text>
         <AddNotes
           categories={dummyCategories}
