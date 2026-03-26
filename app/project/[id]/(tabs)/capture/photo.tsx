@@ -99,6 +99,7 @@ export default function TakePhotoScreen() {
   };
 
   async function onSubmitPictures(formData: MediaEntry) {
+    console.log(formData);
     const uploadRequest: CreateUploadSasRequest = {
       projectId: Number(id),
       files: formData.images.map((i) => ({
@@ -117,8 +118,9 @@ export default function TakePhotoScreen() {
         message:
           "Something went wrong while retrieving SAS links from the server",
       });
-      setUploadingState("idle");
       return;
+    } finally {
+      setUploadingState("idle");
     }
 
     const uploadMediaItems: UploadItem[] = toUpload.map((tu, i) => ({
@@ -130,10 +132,17 @@ export default function TakePhotoScreen() {
       setUploadingState("uploading");
 
       const uploadingResults = await uploadToStorage(uploadMediaItems);
+
+      uploadingResults
+        .filter((ur) => ur.status === "rejected")
+        .forEach((ur) => {
+          console.error(ur.reason);
+        });
+
       if (uploadingResults.some((ur) => ur.status === "rejected")) {
         setError("images", {
           type: "server",
-          message: "Upload failed. Please try again.",
+          message: `Upload failed. Please try again.`,
         });
         setUploadingState("idle");
         return;
@@ -144,8 +153,10 @@ export default function TakePhotoScreen() {
         type: "server",
         message: "Upload failed, try again.",
       });
-      setUploadingState("idle");
+
       return;
+    } finally {
+      setUploadingState("idle");
     }
 
     const mediaUploads = uploadMediaItems.map((u) => {

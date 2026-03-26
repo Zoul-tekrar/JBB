@@ -1,8 +1,10 @@
 import { JbbTitle } from "@/components/design-components/JbbTitle";
+import LoadingPage from "@/components/design-components/overlayLoading";
 import { API_BASE_URL } from "@/constants/urls";
 import { projectSchema } from "@/data/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button, Text, TextInput, View } from "react-native";
 import { z } from "zod";
@@ -13,8 +15,8 @@ export default function AddProject() {
 
   const {
     control,
-    register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<ProjectForm>({
     resolver: zodResolver(projectSchema),
@@ -25,17 +27,28 @@ export default function AddProject() {
     },
   });
 
+  const [isLoading, setLoading] = useState(false);
+
   const { replace } = useRouter();
 
   async function onSubmit(data: ProjectForm) {
     try {
+      setLoading(true);
       const created = await createProject(data);
       console.log(created);
       replace({
         pathname: "/project/[id]/(tabs)/today",
         params: { id: created.id },
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+      setError("root", {
+        message: "Someting went wrong when submitting. Please try again.",
+      });
+      return;
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function createProject(form: ProjectForm): Promise<ProjectDto> {
@@ -46,8 +59,7 @@ export default function AddProject() {
     });
 
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`${res.status} : ${text}`);
+      throw new Error(`Could not save project, status: ${res.status}`);
     }
     const createdProject: ProjectDto = await res.json();
     return createdProject;
@@ -56,6 +68,10 @@ export default function AddProject() {
   return (
     <View>
       <JbbTitle title={"Add Project"} />
+      <Text className="text-center text-bold text-l text-red-700 font-semibold">
+        {errors.root?.message}
+      </Text>
+      {isLoading && <LoadingPage loadingText={"Submitting..."}></LoadingPage>}
       <Text className="text-xl text-center">Project name</Text>
       {errors.name?.message && (
         <Text className="text-center text-bold text-l text-red-700 font-semibold">
@@ -109,6 +125,7 @@ export default function AddProject() {
         <Button
           title="Add new project"
           onPress={handleSubmit(onSubmit)}
+          disabled={isLoading}
         ></Button>
       </View>
     </View>

@@ -28,6 +28,8 @@ export async function uploadToStorage(uploadItems: UploadItem[]) {
   const imagesToUpload = uploadItems.map(async (tu) => {
     const imageBody = await fetch(tu.mediaItem.uri);
     const imageBodyAsBlob = await imageBody.blob();
+    console.info(tu.blobSas.uploadUrl);
+    console.info(tu.mediaItem.mediaType);
 
     const uploadResponse = await fetch(tu.blobSas.uploadUrl, {
       method: "PUT",
