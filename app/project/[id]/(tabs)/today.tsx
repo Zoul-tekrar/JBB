@@ -1,44 +1,47 @@
 import { FakeMapBox } from "@/components/design-components/fake-map-box";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
+import LoadingPage from "@/components/design-components/overlayLoading";
 import { colorCodes } from "@/components/ui/colorCodes";
 import { API_BASE_URL } from "@/constants/urls";
-import { dummyActivityLogs } from "@/data/dummyData";
 import { ProjectDto } from "@/dtos/dtos";
+import { ActivityLogDto } from "@/features/today/dtos";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { ActivityLog } from "../../../../domain/project";
 
 export type ProjectDetailVM = {
-  project: ProjectDto;
-  activityLogs: ActivityLog[];
+  projectDetail: ProjectDto;
+  activityLogs: ActivityLogDto[];
 };
 
 export default function ProjectId() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [project, setProject] = useState<ProjectDetailVM | null>(null);
+  const [projectVm, setProjectVm] = useState<ProjectDetailVM | null>(null);
+
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      const loadProjects = async () => {
+      const loadProject = async () => {
+        setError(null);
+        setLoading(true);
         try {
           const project = await getProject();
           const projectvm: ProjectDetailVM = {
-            project: project,
-            activityLogs: dummyActivityLogs,
+            projectDetail: project,
+            activityLogs: (await getActivityLogs()) ?? [],
           };
-          setProject(projectvm);
+          setProjectVm(projectvm);
         } catch (e) {
-          setError(e instanceof Error ? e.message : "Failed to load projects");
+          setError(e instanceof Error ? e.message : "Failed to load project");
         } finally {
           setLoading(false);
         }
       };
-      loadProjects();
-    }, []),
+      loadProject();
+    }, [id]),
   );
 
   async function getProject(): Promise<ProjectDto> {
@@ -56,9 +59,29 @@ export default function ProjectId() {
     return project;
   }
 
+  async function getActivityLogs(): Promise<ActivityLogDto[]> {
+    const res = await fetch(`${API_BASE_URL}/activitylog/${id}`);
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`${res.status} : ${text}`);
+    }
+
+    return res.json();
+  }
+
   return (
     <View>
-      <JbbTitle title={project?.project.name ?? "loading..."}></JbbTitle>
+      <JbbTitle
+        title={projectVm?.projectDetail.name ?? "loading..."}
+      ></JbbTitle>
+      {loading && <LoadingPage loadingText="Loading..."></LoadingPage>}
+      {error && (
+        <Text className="text-center text-bold text-l text-red-700 font-semibold">
+          {error}
+        </Text>
+      )}
+
       <View style={{ marginTop: 50 }}>
         <View
           style={{
@@ -90,29 +113,39 @@ export default function ProjectId() {
       <FakeMapBox></FakeMapBox>
       {/* The list */}
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        {project?.activityLogs.map((log) => (
-          <View
-            key={log.id}
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              backgroundColor: colorCodes.JBBLINEWHITE,
-              marginTop: 20,
-              borderRadius: 8,
-              height: 50,
-              alignItems: "center",
-            }}
-          >
-            <View>
-              <Text style={{ fontSize: 16 }}>{log.createdAt}: </Text>
+        {projectVm && projectVm.activityLogs.length > 0 ? (
+          projectVm?.activityLogs?.map((log) => (
+            <View
+              key={log.id}
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                backgroundColor: colorCodes.JBBLINEWHITE,
+                marginTop: 20,
+                borderRadius: 8,
+                height: 50,
+                alignItems: "center",
+              }}
+            >
+              <View>
+                <Text style={{ fontSize: 16 }}>
+                  {new Date(log.createdAt).toLocaleTimeString()}:{" "}
+                </Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: 5 }}>
+                <Text
+                  style={{ fontSize: 16 }}
+                  ellipsizeMode="tail"
+                  numberOfLines={1}
+                >
+                  {log.activityMessage} to {log.category}
+                </Text>
+              </View>
             </View>
-            <View style={{ flex: 1, marginLeft: 5 }}>
-              <Text style={{ fontSize: 16 }} ellipsizeMode="tail">
-                {log.displayMessage}
-              </Text>
-            </View>
-          </View>
-        ))}
+          ))
+        ) : (
+          <Text>No activity yet</Text>
+        )}
       </ScrollView>
     </View>
   );

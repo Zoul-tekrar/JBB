@@ -274,7 +274,10 @@ export const dummyActivityLogs: ActivityLog[] = [
 ];
 
 export const dummyCategories: Category[] = [
-  { id: 1, name: "Structural Foundation" },
-  { id: 2, name: "Framing" },
-  { id: 3, name: "Electrical" },
+  { id: 1, name: "Other" },
+  { id: 2, name: "Pre-Construction Planning" },
+  { id: 3, name: "Design & Engineering" },
+  { id: 4, name: "Permits & Approvals" },
+  { id: 5, name: "Site Preparation" },
+  { id: 6, name: "Excavation & Earthwork" },
 ];

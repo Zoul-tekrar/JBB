@@ -136,7 +136,7 @@ export default function TakePhotoScreen() {
       uploadingResults
         .filter((ur) => ur.status === "rejected")
         .forEach((ur) => {
-          console.error(ur.reason);
+          console.error(`reason:${ur.reason}`);
         });
 
       if (uploadingResults.some((ur) => ur.status === "rejected")) {
