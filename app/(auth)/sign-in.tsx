@@ -1,6 +1,7 @@
+import { useApi } from "@/components/auth/api";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { useSignIn } from "@clerk/expo";
+import { useSignIn, useUser } from "@clerk/expo";
 import { type Href, Link, useRouter } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
@@ -12,6 +13,9 @@ export default function Page() {
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
+  const { user } = useUser();
+
+  const { apiFetch } = useApi();
 
   const handleSubmit = async () => {
     const { error } = await signIn.password({
@@ -22,14 +26,46 @@ export default function Page() {
       console.error(JSON.stringify(error, null, 2));
       return;
     }
-
+    debugger;
     if (signIn.status === "complete") {
       await signIn.finalize({
-        navigate: ({ session, decorateUrl }) => {
+        navigate: async ({ session, decorateUrl }) => {
           if (session?.currentTask) {
             // Handle pending session tasks
             // See https://clerk.com/docs/guides/development/custom-flows/authentication/session-tasks
             console.log(session?.currentTask);
+            return;
+          }
+          debugger;
+
+          try {
+            const token = await session.getToken();
+            if (!token) {
+              throw new Error();
+            }
+
+            const response = await apiFetch(
+              "/users/sync-users",
+              {
+                method: "POST",
+                body: JSON.stringify({
+                  email: emailAddress,
+                }),
+              },
+              token,
+            );
+            debugger;
+
+            if (!response.ok) {
+              debugger;
+              const text = await response.text();
+              throw new Error(`Sync failed: ${response.status}: ${text}`);
+            }
+          } catch (err) {
+            // Definitely need to improve this later on with better sync logic.
+            console.log(await session.getToken());
+            console.error("Failed to sync signed in user", err);
+            session?.remove();
             return;
           }
 

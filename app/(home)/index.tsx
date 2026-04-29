@@ -1,7 +1,7 @@
 import ProjectTileView from "@/components/app-components/project-tile-view";
+import { useApi } from "@/components/auth/api";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import { colorCodes } from "@/components/ui/colorCodes";
-import { API_BASE_URL } from "@/constants/urls";
 import { ProjectDto } from "@/dtos/dtos";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router, useFocusEffect } from "expo-router";
@@ -12,6 +12,8 @@ export default function Projects() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<ProjectDto[]>();
+  const { apiFetch } = useApi();
+
   useFocusEffect(
     useCallback(() => {
       const loadProjects = async () => {
@@ -29,7 +31,7 @@ export default function Projects() {
   );
 
   async function getProjects(): Promise<ProjectDto[]> {
-    const res = await fetch(`${API_BASE_URL}/project`);
+    const res = await apiFetch(`/project`);
 
     if (!res.ok) {
       const text = await res.text();

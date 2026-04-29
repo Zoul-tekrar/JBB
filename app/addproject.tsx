@@ -1,6 +1,6 @@
+import { useApi } from "@/components/auth/api";
 import { JbbTitle } from "@/components/design-components/JbbTitle";
 import LoadingPage from "@/components/design-components/overlayLoading";
-import { API_BASE_URL } from "@/constants/urls";
 import { projectSchema } from "@/data/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
@@ -12,6 +12,8 @@ import { ProjectDto } from "../dtos/dtos";
 
 export default function AddProject() {
   type ProjectForm = z.infer<typeof projectSchema>;
+
+  const { apiFetch } = useApi();
 
   const {
     control,
@@ -52,7 +54,7 @@ export default function AddProject() {
   }
 
   async function createProject(form: ProjectForm): Promise<ProjectDto> {
-    const res = await fetch(`${API_BASE_URL}/project`, {
+    const res = await apiFetch(`/project`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
